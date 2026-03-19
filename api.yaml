@@ -16,15 +16,18 @@ tags:
   - name: reviews
     description: operations related to reviews
 
+# servers:
+#   - url: http://192.168.1.47:3000
+#     description: Local Server
+#   - url: http://localhost:3000
+#     description: Local Server
+#   - url: https://api.indhostel.com
+#     description: Production Server
+#   # - url: https://patiofy.smartaihr.com
+#   #   description: Production Server
 servers:
-  - url: http://192.168.1.47:3000
-    description: Local Server
-  - url: http://localhost:3000
-    description: Local Server
-  - url: https://api.indhostel.com
+  - url: https://vishnu-backend.onrender.com
     description: Production Server
-  # - url: https://patiofy.smartaihr.com
-  #   description: Production Server
 components:
   securitySchemes:
     BearerAuth:
