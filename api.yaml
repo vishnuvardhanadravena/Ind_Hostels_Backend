@@ -1,0 +1,3073 @@
+openapi: "3.1.0"
+
+tags:
+  - name: Google_OAuth2.0 
+    description: Google OAUTH2.0 
+  - name: users
+    description: operations related to users
+  - name: accommodations
+    description: operations related to accommodations
+  - name: bookings
+    description: operations related to bookings
+  - name: payments
+    description: operations related to payments  
+  - name: contactus 
+    description: operations related to contact us
+  - name: reviews
+    description: operations related to reviews
+
+servers:
+  - url: http://192.168.1.47:3000
+    description: Local Server
+  - url: http://localhost:3000
+    description: Local Server
+  - url: https://api.indhostel.com
+    description: Production Server
+  # - url: https://patiofy.smartaihr.com
+  #   description: Production Server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: Page number for pagination (starts from 1)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    limitParam:
+      name: limit
+      in: query
+      description: Number of items per page (max 100)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+      
+security:
+  - BearerAuth: []
+
+info:
+  title: Indhostels website Api
+  description: API for indhostels website
+  contact:
+    name: support team
+    url: http://indhostels.com/contactUs
+    email: mukeshpabolu@techpixe.com
+  
+  
+
+paths:
+  /indhostels/auth/user/google:
+    get:
+      summary: Redirect to Google OAuth
+      description: Initiates the Google authentication process.
+      tags:
+        - Google_OAuth2.0
+      responses:
+        "302":
+          description: Redirects to Google's authentication page
+
+  /indhostels/auth/user/google/{googleId}:
+    put:
+      tags:
+        - Google_OAuth2.0
+      summary: Set a new password for a user
+      description: Update the password for a user based on their ID.
+      parameters:
+        - name: googleId
+          in: path
+          required: true
+          description: The ID of the user whose password is being updated.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newpassword
+              properties:
+                newpassword:
+                  type: string
+                  example: Ajay@110125
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: password updated successfully
+        '400':
+          description: Missing or invalid password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: password is required
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: object
+
+  /indhostels/auth/user/signup:
+    post:
+      summary: User Signup using your details
+      description: Creates a new user account. Sends a verification mail after successful signup.
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullname
+                - email
+                - phone
+                - password
+                - confirmpassword
+                - istermsandConditions
+              properties:
+                fullname:
+                  type: string
+                  example: Mukesh Pabolu
+                email:
+                  type: string
+                  example: mukeshpabolu123@gmail.com
+                phone:
+                  type: number
+                  example: 8374831031
+                password:
+                  type: string
+                  example: Mukesh@123
+                confirmpassword:
+                  type: string
+                  example: Mukesh@123
+                istermsandConditions:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: User created and mail send to the email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: mail send to your email, please verify
+        '401':
+          description: Email already taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: email already taken, try another
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: Some error occurred
+
+  # /indhostels/auth/user/verifyaccount:
+  #   post:
+  #     summary: Verify user account using verifykey
+  #     description: |
+  #        This endpoint verifies the user account by verifing the verifykey sent to the user's email.
+  #     tags:
+  #       - users
+  #     parameters:
+  #       - name: verifykey
+  #         in: query
+  #         required: true
+  #         schema:
+  #           type: string
+  #         description: The verifykey sent to the users email
+  #     responses:
+  #       "200":
+  #         description: Account verified successfully.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: "Account verified successfully"
+  #       "408":
+  #         description: Verification time expired.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 message:
+  #                   type: string
+  #                   example: "Time expired, please register"
+  #       "500":
+  #         description: Internal server error.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 error:
+  #                   type: string
+  #                   example: "Internal Server Error"
+
+  /indhostels/auth/user/verify:
+    post:
+      tags:
+       - users
+      summary: verify otp 
+      description: vnerify u r otp to login or signup
+      parameters:
+        - name: phone 
+          in: query 
+          required: true 
+          schema:
+            type: number 
+          description: The phone is required 
+        - name: otp
+          in: query
+          required: true
+          schema:
+            type: number
+          description: The otp sent to the users email 
+      responses:
+        "200":
+          description: Account verified successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account verified successfully"
+        "408":
+          description: Verification time expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Time expired, please register"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+              
+  /indhostels/auth/user/signin:
+    post:
+      tags:
+        - users
+      summary: Sign in a user
+      description: Authenticates a user with phone number, and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+              properties:
+                phone:
+                  type: string
+                  example: "8374831031"
+                password:
+                  type: string
+                  example: "Test@123"
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: login successfully
+                  JWTtoken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Authentication failed due to missing/invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: incorrect phone number or password does not match
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+
+  /indhostels/auth/user/me:
+    get:
+      summary: Get user by ID
+      description: 
+        This endpoint retrieves a user's details by their unique ID.
+      tags:
+        - users
+      security:
+        - BearerAuth: [] 
+      responses:
+        "200":
+          description: User details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    description: The user object containing details.
+                    properties:
+                      _id:
+                        type: string
+                        example: "65a2d5e2f1c3a12b34f6a789"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      email:
+                        type: string
+                        example: "johndoe@example.com"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "User not found"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+
+  /indhostels/auth/user/update:
+    put:
+      summary: Update User Profile
+      description: Updates the logged-in user's fullname, phone and email.
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                  example: "John Doe"
+                state:
+                  type: string
+                  example: "Hyderabad"
+                city:
+                  type: string
+                  example: "Hyderabad"
+                gender:
+                  type: string 
+                  example: male
+                email:
+                  type: string 
+                  example: example@gmail.com
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Profile updated successfully
+                  updatedUser:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: 609c0f58f3a9a2001510bdf1
+                      fullname:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        example: john.doe@example.com
+                      phone:
+                        type: number
+                        example: 9000000000
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: Some error occurred
+
+  /indhostels/auth/user/profilepic:
+    post:
+      summary: Upload or update user profile picture
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              image:
+                - profilePic
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: User profile image file
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: integer
+                    example: 3
+                  message:
+                    type: string
+                    example: User profile updated successfully
+        '401':
+          description: No file provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statuscode:
+                    type: integer
+                    example: 1
+                  message:
+                    type: string
+                    example: profile image is required
+                  error:
+                    type: string
+                    example: Bad Request
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statuscode:
+                    type: integer
+                    example: 2
+                  message:
+                    type: string
+                    example: User not Found
+                  error:
+                    type: string
+                    example: Not Found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statuscode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: error.message
+
+  /indhostels/auth/user/password/forget:
+     post:
+      summary: Request password reset
+      description: Sends a reset password link to the provided email address.
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: marojuajay111@gmail.com
+      responses:
+        '200':
+          description: Password reset link sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: reset password link sent to the email
+        '401':
+          description: Incorrect email or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: incorrect email
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: Detailed error message
+
+  /indhostels/auth/user/password/setNew:
+    put:
+      summary: Set a new password for a user
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: mukeshpabolu123@gmail.com
+                password:
+                  type: string
+                  format: password
+                  example: mukesh@110125
+
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: new password updated , please login
+        '400':
+          description: Missing phone or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: All fields are required
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server Error
+                  error:
+                    type: string
+                    example: Error message details
+
+  /indhostels/auth/user/password/change:
+    post:
+      summary: Reset user password
+      description: |
+        This endpoint allows a user to reset their password by providing their old password and a new password. 
+        If the old password matches, the new password is updated, and the user is logged out.
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldpassword:
+                  type: string
+                  description: The user's current password.
+                newpassword:
+                  type: string
+                  description: The new password to set.
+                confirmpassword:
+                  type: string
+                  description: The confirm password to set.
+      responses:
+        "200":
+          description: Password updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "password updated successfully, Please Login"
+        "400":
+          description: Missing required fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "all fields are required"
+        "401":
+          description: Old password does not match.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "password does not match"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+
+  /indhostels/auth/user/logout:
+    put:
+      summary: Sign out user
+      description: |
+        This endpoint logs out the user by clearing the authentication token cookie. 
+        The cookie is configured with `httpOnly`, `secure`, and `sameSite` attributes for security.
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User logged out successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "user logged out successfully"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /indhostels/auth/user/deactivateaccount:
+    put:
+      summary: Deactivate the user account
+      description: |
+        This endpoint deactivates the user account by updating the status to "deactivated".
+      tags:
+        - users
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User deactivated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "User deactivated successfully"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+ 
+ 
+  # /indhostels/auth/user/deleteaccount:
+  #   delete:
+  #     summary: Delete The User Account
+  #     description: |
+  #       This endpoint deletes the user and all related data.
+  #     tags:
+  #       - users
+  #     security:
+  #       - BearerAuth: []
+  #     responses:
+  #       "200":
+  #         description: User deleted successfully.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 success:
+  #                   type: boolean
+  #                   example: true
+  #                 message:
+  #                   type: string
+  #                   example: "User deleted successfully"
+  #       "500":
+  #         description: Internal server error.
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 error:
+  #                   type: string
+  #                   example: "Internal Server Error"
+  
+  
+#✅ user product calls ✅
+
+  #Products Routes
+   
+  
+  /indhostels/auth/accommodation/:
+  # get all list of products : 
+    get:
+      summary: Get all accommodations with pagination
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          required: false
+          schema:
+            type: integer
+            default: 10
+        # - name: city
+        #   in: query
+        #   description: City name for filtering
+        #   required: false
+        #   schema:
+        #     type: string
+        # - name: area
+        #   in: query
+        #   description: Area name for filtering
+        #   required: false
+        #   schema:
+        #     type: string
+        - name: category_name
+          in: query
+          description: Category name for filtering
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Type name for filtering
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of accommodations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  page:
+                    type: integer
+                    example: 1
+                  limit:
+                    type: integer
+                    example: 10
+                  totalPages:
+                    type: integer
+                    example: 5
+                  data:
+                    type: array
+                    # items:
+                    #   $ref: '#/components/schemas/Product'
+        '404':
+          description: Products not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  messsage:
+                    type: string
+                    example: products not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+  
+  /indhostels/auth/accommodation/featureaccommodations:
+   get:
+    summary: get featured accomidations using city 
+    description: send city and feature type to get your featured accomidations 
+    tags:
+      - accommodations
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: page
+        in: query
+        description: Page number for pagination
+        required: false
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: integer
+          default: 10
+      - name: city
+        in: query
+        description: City name for filtering
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        description: Type name for filtering
+        required: false
+        schema:
+          type: string
+    responses:
+        '200':
+          description: List of accommodations
+        '404':
+          description: Products not found
+        '500':
+          description: Internal Server Error
+
+  /indhostels/auth/accommodation/{id}:
+    get:
+      summary: Retrieve a accommodation by ID
+      description: Fetches the details of a specific accommodation  using its ID.
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: []
+      operationId: getById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the product to retrieve
+          schema:
+            type: string 
+        - name: check_in_date
+          in: query
+          required: false
+          description: Check-in date
+          schema:
+            type: string
+        - name: check_out_date
+          in: query
+          required: false
+          description: Check-out date
+          schema:
+            type: string
+      responses:
+        "200":
+          description: accommodation retrieved successfully
+        "401":
+          description: ID is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID is required"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /indhostels/auth/accommodation/bycity:
+    get:
+      summary: get all accommodations using by city 
+      description: get all accomodations using the by city and checkin and checkout date 
+      tags:
+       - accommodations 
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: true
+          description: type name
+          schema:
+            type: string 
+        - name: city
+          in: query
+          required: true
+          description: city name
+          schema:
+            type: string 
+        - name: check_in_date
+          in: query
+          required: false
+          description: Check-in date
+          schema:
+            type: string
+        - name: check_out_date
+          in: query
+          required: false
+          description: Check-out date
+          schema:
+            type: string 
+      responses:
+        "200":
+          description: accommodations retrieved successfully
+        "401":
+          description: ID is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ID is required"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+ 
+  /indhostels/auth/accommodation/topaccommodations:
+    get:
+      summary: Get top accommodations
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: city
+          in: query
+          required: false
+          description: Number of top accommodations to retrieve
+          schema:
+            type: string
+            default: hyderabad
+      responses:
+        '200':
+          description: Filtered accommodations retrived successfully
+        '404':
+          description: No accommodations found 
+        '500':
+          description: Internal Server Error 
+  
+ 
+  # /indhostels/auth/accommodation/randomproducts:
+  #   get:
+  #     summary: Get random accommodations
+  #     tags:
+  #       - accommodations
+  #     security:
+  #       - BearerAuth: []
+  #     responses:
+  #       '200':
+  #         description: Random accommodations retrived successfully
+  #       '404':
+  #         description: No accommodations found 
+  #       '500':
+  #         description: Internal Server Error 
+  
+  /indhostels/auth/accommodation/getallcategoriesanditsstaytype:
+    get:
+      summary: Get all categories and its stay type
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All categories and its stay type retrieved successfully
+        '404':
+          description: No categories or its stay type found
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/accommodation/filternames:
+    get:
+      summary: Get all filter names
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All filter names retrieved successfully
+        '404':
+          description: No filter names found
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/accommodation/productfilter:
+    get:
+      summary: Get filtered accommodations with pagination
+      description: |
+        Retrieve a paginated list of accommodations based on various filters.
+        Supports filtering by category, location, stay type, room type, amenities, price range, and rating.
+      tags:
+          - accommodations
+      security:
+          - BearerAuth: []
+      parameters:
+          - $ref: '#/components/parameters/pageParam'
+          - $ref: '#/components/parameters/limitParam'
+          - name: category
+            in: query
+            description: Filter by category name
+            required: false
+            schema:
+              type: string
+              example: "hotel"
+          - name: location
+            in: query
+            description: Filter by city name
+            required: false
+            schema:
+              type: string
+              example: "hyderabad"
+          - name: staytype
+            in: query
+            description: JSON array of stay types to filter by
+            required: false
+            schema:
+              type: string
+              example: '["hostel", "pg"]'
+          - name: roomtype
+            in: query
+            description: JSON array of room types to filter by
+            required: false
+            schema:
+              type: string
+              example: '["single", "double"]'
+          - name: amenities
+            in: query
+            description: JSON array of amenities to filter by
+            required: false
+            schema:
+              type: string
+              example: '["wifi", "ac"]'
+          - name: minprice
+            in: query
+            description: Minimum price filter
+            required: false
+            schema:
+              type: number
+              example: 1000
+          - name: maxprice
+            in: query
+            description: Maximum price filter
+            required: false
+            schema:
+              type: number
+              example: 5000
+          - name: rating
+            in: query
+            description: Minimum rating to filter by (1-5)
+            required: false
+            schema:
+              type: number
+              minimum: 1
+              maximum: 5
+              example: 4
+      responses:
+          '200':
+            description: Successfully retrieved filtered accommodations
+          '400':
+            description: Invalid parameters
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+  
+  /indhostels/auth/accommodation/getfilter-accomidations-by-area:
+    get:
+      summary: Get filtered accommodations with pagination
+      description: |
+        Retrieve a paginated list of accommodations based on various filters.
+        Supports filtering by category, location, stay type, room type, amenities, price range, and rating.
+      tags:
+          - accommodations
+      security:
+          - BearerAuth: []
+      parameters:
+          - $ref: '#/components/parameters/pageParam'
+          - $ref: '#/components/parameters/limitParam'
+          - name: category
+            in: query
+            description: Filter by category name
+            required: false
+            schema:
+              type: string
+              example: "menspg"
+          - name: check_in_date
+            in: query
+            description: the date when u r going to accomodation
+            required: false 
+            schema:
+               type: string 
+          - name: check_out_date
+            in: query
+            description: the date when u r going to leave accomodation
+            required: false 
+            schema:
+               type: string 
+            
+          - name: location
+            in: query
+            description: Filter by city name
+            required: false
+            schema:
+              type: string
+              example: "hyderabad"
+          # - name: staytype
+          #   in: query
+          #   description: JSON array of stay types to filter by
+          #   required: false
+          #   schema:
+          #     type: string
+          #     example: '["hostel", "pg"]'
+          - name: roomtype
+            in: query
+            description: JSON array of room types to filter by
+            required: false
+            schema:
+              type: string
+              example: '["single", "double"]'
+          - name: amenities
+            in: query
+            description: JSON array of amenities to filter by
+            required: false
+            schema:
+              type: string
+              example: '["wifi", "ac"]'
+          # - name: minprice
+          #   in: query
+          #   description: Minimum price filter
+          #   required: false
+          #   schema:
+          #     type: number
+          #     example: 1000
+          # - name: maxprice
+          #   in: query
+          #   description: Maximum price filter
+          #   required: false
+          #   schema:
+          #     type: number
+          #     example: 5000
+          - name: rating
+            in: query
+            description: Minimum rating to filter by (1-5)
+            required: false
+            schema:
+              type: number
+              minimum: 1
+              maximum: 5
+              example: 4
+      responses:
+          '200':
+            description: Successfully retrieved filtered accommodations
+          '400':
+            description: Invalid parameters
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+  
+  /indhostels/auth/accommodation/sortaccommodation:
+    get:
+      summary: get sorted accomodations 
+      description: sort the accomidations using price 
+      tags:
+        - accommodations
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - name: category
+          in: query
+          required: false
+          description: Category name (optional)
+          schema:
+            type: string
+        - name: hightolow
+          in: query
+          required: false
+          description: Hight to low (optional)
+          schema:
+            type: boolean 
+        - name: lowtohigh
+          in: query
+          required: false
+          description: Low to high (optional)
+          schema:
+            type: boolean 
+        - name: location 
+          in: query 
+          required: false 
+          description: give me name of the city u r going to sort 
+          schema:
+            type: string 
+        - name: price
+          in: query
+          required: false
+          description: Price (optional)
+          schema:
+            type: string
+            example: "hightolow"
+        - name: check_in_date
+          in: query 
+          required: false 
+          description: date of u r going to accomidation 
+          schema:
+            type: string 
+        - name: check_out_date
+          in: query 
+          required: false 
+          description: date of u r going to accomidation 
+          schema:
+            type: string 
+        
+      responses:
+        '200':
+          description: Accommodations sorted successfully
+        '400':
+          description: Invalid parameters (staytype must be an array)
+        '404':
+          description: No accommodations found 
+        '500':
+          description: Internal Server Error
+       
+  
+  /indhostels/auth/accommodation/search:
+    get:
+      summary: Search for accommodations
+      description: Search for accommodations based on the search query.
+      tags:
+        - accommodations
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number (optional)
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of results per page (optional)
+          schema:
+            type: integer
+            example: 10
+        - name: city
+          in: query
+          required: false
+          description: The search query for city
+          schema:
+            type: string 
+        - name: area
+          in: query
+          required: false
+          description: The search query for area
+          schema:
+            type: string 
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "search products received successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "12345"
+                        name:
+                          type: string
+                          example: "Product Name"
+                        description:
+                          type: string
+                          example: "Product Description"
+                        category:
+                          type: string
+                          example: "Category Name"
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                            example: "tag1"
+        '404':
+          description: Products not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "products not found"
+                  error:
+                    type: string
+                    example: "Not Found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                  error:
+                    type: string
+                    example: "Error details"
+  /indhostels/auth/accommodation/room/{id}:
+    get:
+      summary: Get room by ID
+      description: Retrieves a room by its ID.
+      tags:
+        - accommodations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Room ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Room fetched successfully"
+                  roomdetails:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "12345"
+                      name:
+                        type: string
+                        example: "Room Name"
+                      description:
+                        type: string
+                        example: "Room Description"
+                      category:
+                        type: string
+                        example: "Room Category"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                          example: "tag1"
+        '404':
+          description: Room not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Room not found"
+                  error:
+                    type: string
+                    example: "Not Found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                  error:
+                    type: string
+                    example: "Error details"
+  /indhostels/auth/accommodation/neighborhoods:
+    get:
+      summary: Get all neighborhoods
+      description: Retrieves a list of all neighborhoods.
+      tags:
+        - accommodations 
+      parameters:
+        - name: city
+          in: query
+          required: true
+          description: City 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Neighborhoods fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Neighborhoods fetched successfully"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "12345"
+                        name:
+                          type: string
+                          example: "Neighborhood Name"
+                        description:
+                          type: string
+                          example: "Neighborhood Description"
+                        category:
+                          type: string
+                          example: "Neighborhood Category"
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                            example: "tag1"
+        '404':
+          description: Neighborhoods not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Neighborhoods not found"
+                  error:
+                    type: string
+                    example: "Not Found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Internal Server Error"
+                  error:
+                    type: string
+                    example: "Error details"
+  /indhostels/auth/accommodation/dealsincity:
+    get:
+      summary:  Get all accommodations with deals in a city
+      description: Retrieves a list of all accommodations with deals in a city.
+      tags:
+        - accommodations
+      parameters:
+        - name: city
+          in: query
+          required: true
+          description: City 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Accommodations fetched successfully
+        '404':
+          description: Accommodations not found
+        '500':
+          description: Internal server error
+  /indhostels/auth/accommodation/recentlyviews:
+    get:
+      summary: Get All Recently Views of the user 
+      description: Get All Recently Views using the user id  
+      tags: 
+        - accommodations 
+      security:
+        - BearerAuth: [] 
+      responses:
+       '200':
+         description: Recently views fetched successfully
+       '404':
+         description: Recently views not found
+       '500':
+         description: Internal server error
+  /indhostels/auth/accommodation/user-liked-accommodation:
+    get:
+      summary: Get all accomidations user liked 
+      description: Get all user may like accomidations using city 
+      tags:
+        - accommodations
+      parameters:
+        - name: city
+          in: query
+          required: true
+          description: City 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Accommodations fetched successfully
+        '404':
+          description: Accommodations not found
+        '500':
+          description: Internal server error
+ 
+  # /indhostels/auth/accommodation/allamenities:
+  #   get:
+  #     summary: Get all amenities
+  #     description: Retrieves a list of all amenities.
+  #     tags:
+  #       - accommodations
+  #     responses:
+  #       '200':
+  #         description: Amenities fetched successfully
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 success:
+  #                   type: boolean
+  #                   example: true
+  #                 message:
+  #                   type: string
+  #                   example: "Amenities fetched successfully"
+  #                 data:
+  #                   type: array
+  #                   items:
+  #                     type: object
+  #                     properties:
+  #                       ameniti_name:
+  #                         type: string
+  #                         example: "Amenity Name"
+
+#✅ user Query form ✅
+
+  /indhostels/auth/user/query:
+    post:
+      summary: Submit a Contact Us Message
+      description: Allows an authenticated user to submit a message via the contact form.
+      tags:
+        - contactus
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullname:
+                  type: string
+                  example: "Pabolu Mukesh Narayana"
+                email:
+                  type: string
+                  example: "mukeshpabolu123@gmail.com"
+                phone:
+                  type: string
+                  example: "8374831031"
+                subject:
+                  type: string
+                  example: "I have an issue with my booking."
+                message:
+                  type: string
+                  example: "I have an issue with my booking."
+      responses:
+        200:
+          description: Successfully submitted the contact message.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Submitted successfully"
+        400:
+          description: Bad request, missing or invalid input.
+        401:
+          description: Unauthorized, user not logged in.
+        500:
+          description: Internal Server Error.
+
+#✅ user order calls ✅
+
+  /indhostels/auth/coupon/apply:
+    post:
+      tags:
+        - bookings
+      summary: Apply a coupon to the order
+      description: Applies a coupon code to the current user's order to get a discount
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - coupon
+              properties:
+                coupon:
+                  type: string
+                  description: The coupon code to apply
+                  example: "SUMMER20"
+      responses:
+        '200':
+          description: Coupon applied successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Coupon applied successfully"
+        '400':
+          description: Bad Request - Invalid coupon or already used
+        '401':
+          description: Unauthorized - User not authenticated
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/coupon/all:
+    get:
+      summary: Get all coupon details
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All coupon details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Coupon'
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/coupon/search:
+    get:
+      summary: Search for a coupon
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: searchquery
+          required: true
+          schema:
+            type: string
+          description: The search query
+      responses:
+        '200':
+          description: Coupon details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: integer
+                    example: 200
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/user/booking/{accoid}/{roomid}:
+    post:
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      summary: Create an booking
+      description: >
+         Create an booking for a specific accommodation and related room.
+      parameters:
+        - in: path
+          name: accoid
+          required: true
+          schema:
+            type: string
+          description: accommodation ID
+        - in: path
+          name: roomid
+          required: true
+          schema:
+            type: string
+          description: room ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - paymentmode
+              properties:
+                check_in_date:
+                   type: string
+                   example: "2025-11-20"
+                check_out_date:
+                   type: string
+                   example: "2025-11-25"
+                price_type:
+                   type: string
+                   example: "fixed"
+                noofguests:
+                   type: integer
+                   example: 2
+                guestdetails:
+                   type: object
+                   properties:
+                     fullname:
+                       type: string
+                       example: "John Doe"
+                     mobilenumber:
+                       type: number
+                       example: 1234567890
+                     emailAddress:
+                       type: string
+                       example: "john.doe@example.com"
+                     agreed:
+                       type: boolean
+                       example: true
+                     noofadults:
+                       type: number
+                       example: 2
+                     noofchildrens: 
+                       type: number
+                       example: 1
+                     gender:
+                       type: string
+                       example: "Male"
+                paymentmode:
+                   type: string
+                   enum: [online, coc]
+                   example: "online"
+                bookingamount:
+                   type: number
+                   example: 1000
+                couponCode:
+                   type: string
+                   example: "SAVE10"
+                discountamount:
+                   type: number
+                   example: 100
+      responses:
+        '200':
+          description: Order placed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Order process completed
+                  razorpay_orderId:
+                    type: string
+                    example: "order_Izvx1234567890"
+                  successfulOrders:
+                    type: array
+                    items:
+                      type: object
+                    description: List of successfully created orders
+                  failedItems:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cartId:
+                          type: string
+                        reason:
+                          type: string
+        '400':
+          description: Missing or invalid inputs
+        '401':
+          description: Unauthorized or invalid payment/quantity
+        '404':
+          description: Product, cart item, or matrix not found
+        '500':
+          description: Internal server error
+  
+  /indhostels/auth/user/booking/{id}:
+     get:
+      summary: Get an booking by ID
+      description: Retrieves a specific booking by ID if it belongs to the authenticated user.
+      operationId: getBookingById
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: MongoDB Booking ID
+          required: true
+          schema:
+            type: string
+            example: 665f4a1848f00a4db8a325df
+      responses:
+        '200':
+          description: Booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Booking retrieved successfully
+        '401':
+          description: Invalid Booking ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: invalid booking ID
+                  error:
+                    type: string
+                    example: UnAuthorized
+        '403':
+          description: User not authorized to access this booking
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: you are not authorized
+                  error:
+                    type: string
+                    example: UnAuthorized
+        '404':
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Booking not Found
+                  error:
+                    type: string
+                    example: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: Some server error message
+  
+  
+  /indhostels/auth/user/booking/mybookings:
+    get:
+      summary: Retrieve all bookings for a user
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      description: Fetches all bookings associated with the authenticated user.
+      produces:
+        - application/json 
+      parameters:
+       - in: query
+         name: page
+         schema:
+           type: integer
+           example: 1
+         required: true
+       - in: query
+         name: limit
+         schema:
+           type: integer
+           example: 10
+         required: true
+      responses:
+        '200':
+          description: Successful retrieval of orders
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              cached:
+                type: boolean
+                example: false
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      example: "12345"
+                    productId:
+                      type: string
+                      example: "67890"
+                    quantity:
+                      type: integer
+                      example: 2
+                    totalPrice:
+                      type: number
+                      format: float
+                      example: 19.99
+        '404':
+          description: No orders found
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "order are empty"
+              error:
+                type: string
+                example: "Not Found"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              message:
+                type: string
+                example: "Internal Server Error"
+              error:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Error"
+                  message:
+                    type: string
+                    example: "Detailed error message"
+         
+  /indhostels/auth/user/booking/cancel/{id}:
+    put:
+      summary: Cancel an order by ID
+      tags:
+        - bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Order ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: order cancelled successfully
+        '401':
+          description: Invalid Object ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: invalid ID
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: order not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+  
+ 
+ 
+  /indhostels/auth/user/booking/generate-invoice/{id}:
+    post:
+      summary: Generate invoice for a booking
+      description: |
+        Generates an invoice for a specific booking based on the booking ID.
+        This endpoint should be called after successful payment completion on the client side.
+      tags:
+        - payments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the booking for which the invoice is being generated.
+          schema:
+            type: string 
+      responses:
+        '200':
+          description: Invoice generated successfully
+        '404':
+          description: Booking not found
+        '500':
+          description: Internal Server Error
+          
+
+  /indhostels/auth/user/booking/verify-payment:
+    post:
+      summary: Verify Razorpay payment and create order
+      description: |
+        Verifies Razorpay payment signature and creates an order in the database.
+        This endpoint should be called after successful payment completion on the client side.
+      tags:
+        - payments
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - razorpay_order_id
+                - razorpay_payment_id
+                - razorpay_signature
+                - orderData
+              properties:
+                razorpay_order_id:
+                  type: string
+                  description: The Razorpay order ID
+                  example: order_LWzn7Wq8W5FDFt
+                razorpay_payment_id:
+                  type: string
+                  description: The Razorpay payment ID
+                  example: pay_LWznP45gy7B7El
+                razorpay_signature:
+                  type: string
+                  description: The payment verification signature from Razorpay
+                  example: 9e2e0a85a0f5e4cc8e5c254c7f7e5cb5aa15c20d59d2d86c1a...
+                orderData:
+                  type: object
+                  required:
+                    - accoid 
+                    - roomid 
+                    - check_in_date
+                    - check_out_date 
+                    - noofguests
+                    - guestdetails 
+                    - paymentmode 
+                    - couponCode 
+                    - discountamount 
+                    - price_type 
+                    - bookingamount
+                  properties:
+                    accoid:
+                      type: string
+                      description: accommodationid of ur stay 
+                    roomid:
+                      type: string
+                      description: roomid of ur stay 
+                    check_in_date:
+                      type: string
+                      description: the date of u r gng to stay
+                    check_out_date:
+                      type: string
+                      description: the date of u r gng to leave
+                    noofguests:
+                      type: number
+                      description: No.of People gng to come for stay
+                      example: 2 
+                    guestdetails:
+                      type: object
+                      properties:
+                        fullname:
+                          type: string
+                          example: "John Doe"
+                        mobilenumber:
+                          type: number
+                          example: 1234567890
+                        emailAddress:
+                          type: string
+                          example: "john.doe@example.com"
+                        agreed:
+                          type: boolean
+                          example: true
+                        noofadults:
+                          type: number
+                          example: 2
+                        noofchildrens:
+                          type: number
+                          example: 0
+                        gender:
+                          type: string
+                          example: "male"
+                    paymentmode:
+                      type: string
+                      enum: [online, coc]
+                      default: online
+                      example: online
+                    discountamount:
+                      type: number
+                      description: Total order amount in INR
+                      example: 999.99
+                    couponCode:
+                      type: string
+                      description: Applied coupon code (if any)
+                    bookingamount:
+                      type: number
+                      description: Total order amount in INR
+                      example: 999.99 
+                    price_type:
+                      type: string
+                      example: "per day"
+      responses:
+        '200':
+          description: Booking created successfully after payment verification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: number
+                    example: 200
+                  message:
+                    type: string
+                    example: "Booking placed successfully"
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          description: Bad Request - Invalid input or payment verification failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  statuscode:
+                    type: number
+                    example: 400
+                  message:
+                    type: string
+                    example: "Payment signature verification failed"
+                  error:
+                    type: string
+                    example: "Invalid Signature"
+        '404':
+          description: Not Found - User or product not found
+        '500':
+          description: Internal Server Error
+        '400':
+          description: Bad request due to invalid signature or order ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Payment signature verification failed
+                  error:
+                    type: string
+                    example: Bad Request
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal server error
+                  error:
+                    type: string
+                    example: Signature generation failed
+
+#✅ wishlist ✅
+  /indhostels/auth/user/wishlist:
+    post:
+      summary: Add accommodation to wishlist
+      description: Add accommodation to wishlist
+      tags:
+        - user-wishlist 
+      security:
+        - BearerAuth: [] 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accommodationid:
+                  type: string
+      responses:
+        '200':
+          description: Wishlist added successfully 
+        '404':
+          description: Wishlist not found 
+        '500':
+          description: Internal Server Error 
+  
+  /indhostels/auth/user/getwishlist:
+    get:
+      summary: Get wishlists of perticular user
+      description: Get wishlists of perticular user
+      tags:
+        - user-wishlist 
+      security:
+        - BearerAuth: [] 
+      responses:
+        '200':
+          description: Wishlist retrived successfully 
+        '404':
+          description: Wishlist not found 
+        '500':
+          description: Internal Server Error 
+  /indhostels/auth/user/deletewishlist:
+    delete:
+      summary: Delete wishlist of perticular user
+      description: Delete wishlist of perticular user
+      tags:
+        - user-wishlist 
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: query
+          name: wishlistid
+          required: true
+          schema:
+            type: string
+          description: Wishlist ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Wishlist deleted successfully 
+        '404':
+          description: Wishlist not found 
+        '500':
+          description: Internal Server Error 
+
+
+# ✅ ratings ✅
+
+  /indhostels/auth/accommodation/review/{id}:
+     post:
+      tags:
+        - reviews
+      security:
+        - BearerAuth: []
+      summary: Post a review of a stay
+      description: Creates a review for a specific stay in the hotel or pg or hostel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the product to review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number 
+                aboutstay:
+                  type: string
+                verifiedstay:
+                  type: boolean
+                  example: true
+                stayeddate:
+                  type: string
+                  example: "2023-01-01"
+                roomtype:
+                  type: string
+                  example: "Single"
+      responses:
+        '201':
+          description: Review posted successfully
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: productId, userId and rating are required
+        '500':
+          description: Server error while posting review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while posting review
+                  error:
+                    type: string
+                    example: Internal Server Error    
+     patch:
+       tags:
+        - reviews
+       security:
+        - BearerAuth: [] 
+       summary: update the review 
+       description: update the perticular review using the review id 
+       parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the review to update
+       requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    helpful:
+                      type: string 
+                    nothelpful:
+                      type: string 
+       responses:
+        '201':
+          description: Review updated successfully
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: productId, userId and rating are required
+        '500':
+          description: Server error while updating review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while updating review
+                  error:
+                    type: string
+                    example: Internal Server Error
+         
+          
+  /indhostels/auth/accommodation/reviews/all/{id}:
+    get:
+      tags:
+        - reviews
+      security:
+        - BearerAuth: []
+      summary: Get all reviews for a specific product
+      description: Fetches all reviews for a given product, including user info and sorted by latest.
+      parameters:
+        - name: page
+          in: query 
+          required: false 
+          schema: 
+            type: integer 
+            example: 1
+        - name: limit 
+          in: query 
+          required: false 
+          schema:
+            type: integer 
+            example: 10
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: 665e3a31e4c4ddf92c7712c3
+          description: The ID of the product to fetch reviews for
+      responses:
+        '200':
+          description: A list of reviews for the product
+        '404':
+          description: No reviews found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: No reviews found for this product
+        '500':
+          description: Server error while fetching reviews
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while fetching reviews
+                  error:
+                    type: string
+                    example: Internal Server Error
+
+  /indhostels/auth/accommodation/reviews/random:
+    get:
+      summary: Get random reviews
+      tags:
+        - reviews
+      responses:
+        '200':
+           description: "Reviews Retrived Successfully" 
+        '404': 
+           description: "No reviews found" 
+        '500': 
+           description: "Server error while fetching reviews" 
+ 
+#✅ Notification ✅   
+  /indhostels/auth/user/notification:
+    get:
+      summary: Get all notifications of perticular user
+      description: Get all notifications of perticular user
+      tags:
+        - user-notifications 
+      security:
+        - BearerAuth: [] 
+      responses:
+        '200':
+          description: Notification retrived successfully 
+        '404':
+          description: Notification not found 
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/user/notification/{notificationid}:
+    get:
+      summary: Get perticular notification using the id
+      tags: 
+       - user-notifications
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: path
+          name: notificationid
+          required: true
+          schema:
+            type: string
+            description: Notification ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Notification retrived successfully 
+        '404':
+          description: Notification not found 
+        '500':
+          description: Internal Server Error
+
+#✅ Help and Support ✅ 
+  
+  /indhostels/auth/helpandsupport/create-ticket-and-messages:
+    post:
+      summary: Create a new ticket and message
+      description: Create a new ticket and message
+      tags:
+        - helpandsupport 
+      security:
+        - BearerAuth: [] 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string 
+                subject:
+                  type: string 
+                message:
+                  type: string 
+                attachment:
+                  type: file
+                bookingid:
+                  type: string 
+      responses:
+        '200':
+          description: Ticket created successfully
+        '400':
+          description: Bad Request
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Bad Request
+                  error:
+                    type: string
+                    example: All fields are required
+        '500':
+          description: Internal Server Error
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while creating ticket
+                  error:
+                    type: string
+                    example: Internal Server Error
+  
+  /indhostels/auth/helpandsupport/get-tickets-and-messages:
+    get:
+      summary: Get all tickets and messages
+      description: Get all tickets and messages
+      tags:
+        - helpandsupport 
+      security:
+        - BearerAuth: [] 
+      responses:
+        '200':
+          description: Tickets and messages retrived successfully
+        '404':
+          description: Tickets and messages not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Tickets and messages not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while fetching tickets and messages
+                  error:
+                    type: string
+                    example: Internal Server Error 
+
+#✅ User Dashboard ✅ 
+
+  /indhostels/auth/user/dashboard:
+    get:
+      summary: Get user dashboard
+      description: Get user dashboard
+      tags:
+        - user-dashboard 
+      security:
+        - BearerAuth: [] 
+      responses:
+        '200':
+          description: User dashboard retrived successfully
+        '404':
+          description: User dashboard not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User dashboard not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error while fetching user dashboard
+                  error:
+                    type: string
+                    example: Internal Server Error 
+
+# get all ids 
+  /indhostels/auth/user/allids:
+    get:
+      summary: Get all ids 
+      description: Get all unique ids from all all tables 
+      tags:
+        - All Ids
+      security:
+        - BearerAuth: [] 
+      responses:
+        '200':
+          description: All Ids retrived successfully
+        '500':
+          description: Internal Server Error
+
+

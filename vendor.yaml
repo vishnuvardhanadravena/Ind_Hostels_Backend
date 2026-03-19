@@ -1,0 +1,2497 @@
+openapi: "3.1.0"
+
+servers:
+  - url: http://192.168.1.47:3000
+    description: Local Server
+  - url: http://localhost:3000
+    description: Local Server
+  - url: https://api.indhostel.com
+    description: Production Server
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
+security:
+  - BearerAuth: []
+
+info:
+  title: Indhostels website Api
+  description: API for Indhostels website
+  contact:
+    name: support team
+    url: http://indhostels.com/contactUs
+    email: mukeshpabolu@techpixe.com  
+
+
+paths:
+ # Vendor Profile calls
+  /indhostels/auth/vendor/vendorregister:
+    post:
+      summary: Vendor Register
+      description: Vendor Register Using Their Details 
+      tags:
+        - Vendor-Profile 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - full_name
+                - email
+                - phone
+                - city 
+                - state
+                - address
+                - password
+                - bankdetails
+              properties:
+                full_name:
+                  type: string
+                  example: "Mukesh"
+                email:
+                  type: string
+                  example: "mukeshpabolu@techpixe.com"
+                phone:
+                  type: number
+                  example: "8374831031"
+                city:
+                  type: string
+                  example: "Mumbai"
+                state:
+                  type: string
+                  example: "Maharashtra"
+                address:
+                  type: string
+                  example: "123 Main Street" 
+                password:
+                  type: string
+                  example: "Test@123" 
+                bankdetails:
+                  type: string
+                  example: '[{"account_holder_name":"Mahesh","account_number":"0110040500000013","ifsc_code":"SBIN0000051","bank_name":"SBI Bank"}]'
+                  description: |
+                    Pass JSON array as a string.
+                    Example:
+                    [
+                      {
+                        "account_holder_name": "Mahesh",
+                        "account_number": "0110040500000013",
+                        "ifsc_code": "SBIN0000051",
+                        "bank_name": "SBI Bank"
+                      }
+                    ]
+                docs:
+                  type: array 
+                  items:
+                    type: file
+                  description: Array of accommodation images 
+                  
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: login successfully
+                  JWTtoken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Authentication failed due to missing/invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: incorrect phone number or password does not match
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+  
+  
+  
+  /indhostels/auth/vendor/vendorlogin:
+   post:
+     summary: Vendor Login 
+     description: Vendor Login Using the phone or phone and password 
+     tags:
+       - Vendor-Profile 
+     requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - password
+              properties:
+                phone:
+                  type: number
+                  example: "8374831031"
+                password:
+                  type: string
+                  example: "Test@123"
+     responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: login successfully
+                  JWTtoken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Authentication failed due to missing/invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: incorrect phone number or password does not match
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+
+  /indhostels/auth/vendor/verifi:
+    post:
+      tags:
+       - Vendor-Profile
+      summary: verify otp 
+      description: vnerify u r otp to login or signup
+      parameters:
+        - name: otp
+          in: query
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Account verified successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account verified successfully"
+        "408":
+          description: Verification time expired.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Time expired, please register"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+           
+  /indhostels/auth/vendor/profile:
+    get:
+      tags:
+       - Vendor-Profile
+      summary: get vendor profile
+      description: get vendor profile
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: login successfully
+                  JWTtoken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... 
+        '401':
+          description: Authentication failed due to missing/invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: incorrect phone number or password does not match
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  
+  /indhostels/auth/vendor/profileimage:
+    post:
+      tags:
+       - Vendor-Profile 
+      summary: upload vendor profile image
+      description: upload vendor profile image 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileimage:
+                  type: file
+                  description: upload vendor profile image 
+      responses:
+        '200':
+          description: Successful upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: profile image uploaded successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+
+  /indhostels/auth/vendor/changepassword:
+    post:
+      tags:
+       - Vendor-Profile 
+      summary: change vendor password
+      description: change vendor password using old password and new password 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldpassword:
+                  type: string
+                  description: old password 
+                newpassword:
+                  type: string
+                  description: new password 
+                confirmpassword:
+                  type: string
+                  description: confirm password 
+      responses:
+        '200':
+          description: Successful change password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  password changed successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error" 
+  /indhostels/auth/vendor/forgetpassword:
+    post:
+      tags:
+       - Vendor-Profile 
+      summary: forget vendor password
+      description: forget vendor password using email 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: email 
+      responses:
+        '200':
+          description: Successful forget password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  password reset link sent successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"    
+  /indhostels/auth/vendor/resetpassword: 
+    post:
+      tags:
+       - Vendor-Profile 
+      summary: reset vendor password
+      description: reset vendor password using email and password 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: email 
+                password:
+                  type: string
+                  description: password 
+      responses:
+        '200':
+          description: Successful reset password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  password reset successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+  /indhostels/auth/vendor/updateprofile/: 
+    patch:
+      tags:
+       - Vendor-Profile 
+      summary: update vendor profile
+      description: update vendor profile using full name and location 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                  description: full name 
+                location:
+                  type: object
+                  properties:
+                    city:
+                      type: string
+                      description: city 
+                    state:
+                      type: string
+                      description: state 
+                    address:
+                      type: string
+                      description: address 
+                bankdetails:
+                    type: array 
+                    items:
+                      type: object 
+                    example:
+                      - account_holder_name: "John Doe"
+                        account_number: "1234567890"
+                        ifsc_code: "ABCD1234"
+                        bank_name: "Axis Bank"
+                    description: bank details of vendor 
+      responses:
+        '200':
+          description: Successful update profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  profile updated successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error" 
+  
+  /indhostels/auth/vendor/updatebankdetails/{id}:
+    patch:
+      tags:
+       - Vendor-Profile 
+      summary: update vendor profile
+      description: update vendor profile using full name and location 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: BankDetails Id
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+                  description: True or False to activate/deactivate the bank details
+                  example: true
+      responses:
+        '200':
+          description: Successful update profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  profile updated successfully 
+        '404':
+          description: Vendor Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: vendor not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error" 
+  
+      
+ 
+  # Vendor Properties 
+  /indhostels/auth/vendor/createproperty:
+    post:
+      tags:
+        - Vendor-Properties
+      security:
+        - BearerAuth: []
+      summary: Create a new accommodation
+      description: Creates a new accommodation with images and details
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - property_name
+                - property_description
+                - property_type
+                - category_name
+                - city
+                - area
+                - address
+                - amenities
+                - room_types
+                - cacellation_policy
+                - host_contact
+                - host_name
+                - isverified
+                - isbestfor 
+                - nearby
+              properties:
+                property_name:
+                  type: string
+                  example: string
+                property_description:
+                  type: string
+                  example: string
+                property_type:
+                  type: string
+                  example: string
+                category_name:
+                  type: string
+                  example: string
+                city:
+                  type: string
+                  example: string
+                area:
+                  type: string
+                  example: string
+                address:
+                  type: string
+                  example: string
+                locationurl:
+                  type: string
+                  example: string
+                lat:
+                  type: number
+                lont:
+                  type: number
+                amenities:
+                  type: array 
+                  items: 
+                    type: string
+                    example: string
+                room_types:
+                  type: array 
+                  items: 
+                    type: string
+                    example: lightweight
+                check_in_time:
+                  type: string
+                  example: string
+                check_out_time:
+                  type: string
+                  example: string
+                cacellation_policy:
+                  type: string
+                  example: string
+                host_contact:
+                  type: string
+                  example: string
+                host_name:
+                  type: string
+                  example: string
+                images:
+                  type: array 
+                  items:
+                    type: file
+                  description: Array of accommodation images 
+                isbestfor:
+                  type: string
+                  example: string 
+                nearby:
+                  type: array 
+                  items: 
+                    type: string
+                    example: string 
+                tax:
+                   type: boolean
+                   example: true
+                tax_amount:
+                   type: number
+                   example: 10
+                isverified:
+                   type: boolean
+                   example: true 
+      responses:
+        '200':
+          description: Accommodation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Accommodation created successfully
+                  data:
+                    type: object
+                    description: Created accommodation object
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/vendor/allproperties: 
+    get:
+      tags:
+       - Vendor-Properties 
+      
+      
+      summary: get all properties
+      description: get all properties 
+      parameters:
+        - name: check_in_date
+          in: query
+          description: the date when u r going to accomodation
+          required: false 
+          schema:
+            type: string 
+        - name: check_out_date
+          in: query
+          description: the date when u r going to leave accomodation
+          required: false 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful get all properties
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  properties fetched successfully 
+        '404':
+          description: Properties Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: properties not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error" 
+  /indhostels/auth/vendor/property/{id}: 
+    get:
+      tags:
+       - Vendor-Properties 
+      summary: get property by id
+      description: get property by id 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Property ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful get property by id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example:  property fetched successfully 
+        '404':
+          description: Property Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: property not found 
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error" 
+  
+  /indhostels/auth/vendor/property/images/{id}:
+    post:
+      tags:
+        - Vendor-Properties 
+      security:
+        - BearerAuth: []
+      summary: Add new images to a property
+      description: Upload one or more images to an existing property
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The property ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - images
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: file
+                    format: binary
+                  description: One or more property images
+      responses:
+        '200':
+          description: Images added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  statuscode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Images added successfully
+        '400':
+          description: Bad Request - Invalid ID, missing property, or empty files
+        '500':
+          description: Internal Server Error 
+
+  /indhostels/auth/vendor/property/singleimage/{id}:
+    delete:
+      tags:
+        - Vendor-Properties 
+      security:
+        - BearerAuth: [] 
+      summary: delete single image to a property 
+      description: delete single image to the property 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the product to which single image are to be delete
+          schema:
+            type: string
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              type: object 
+              required: 
+                - index 
+              properties:
+                index:
+                  type: integer
+                  description: The index of the image to delete
+      responses:
+        '200':
+          description: Single Image deleted successfully 
+          content:
+             application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Accommodation images added successfully
+                  data:
+                    type: object
+                    description: Created accommodation object
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+
+  /indhostels/auth/vendor/property/replaceproductimage/{id}:
+     patch:
+      tags:
+        - Vendor-Properties 
+      security:
+        - BearerAuth: [] 
+      summary: Replace a single image in a property
+      description: Replace a single image in the property at a given index
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The property ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - indexes
+                - images
+              properties:
+                indexes:
+                  type: string
+                  example: "[0,1]"
+                  description: The index of the image to replace (send as array, e.g. "[0]" or "[0,1]")
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Array of new property images
+      responses:
+        '200':
+          description: Image replaced successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Property image replaced successfully
+                  data:
+                    type: object
+                    description: Updated property object
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+     
+  /indhostels/auth/vendor/updateproperty/{id}:
+    patch:
+      summary: Update a property
+      description: Updates property details. Only fields provided in the request body will be updated.
+      tags:
+        - Vendor-Properties
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the property to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                property_name:
+                  type: string
+                  example: Homely Haven
+                property_description:
+                  type: string
+                  example: Experience comfort and community living at UrbanNest PG — fully furnished rooms, high-speed WiFi, home-cooked meals, and 24/7 security. Perfect for students and working professionals seeking convenience and style
+                property_type:
+                  type: string
+                  example: pgs
+                category_name:
+                  type: string 
+                  example: menspg
+                city:
+                  type: string
+                  example: hyderabad
+                area:
+                  type: string 
+                  example: kphb
+                address:
+                  type: string
+                  example: KPHB Colony ,Phase2,Near Metro Station
+                locationurl:
+                  type: string
+                  example: string
+                amenities:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                      - wifi
+                      - Verified
+                      - Free WiFi
+                      - Meals included
+                      - 24/7 Security
+                      - Comfortable Beds
+                      - Laundry Service
+                      - Parking
+                room_types:
+                  type: array
+                  items:
+                    type: string
+                  example: 
+                      - one share
+                      - two share
+                      - three share
+                      - four share
+                      - five share
+                check_in_time:
+                  type: string
+                  example: from 6:00 am
+                check_out_time:
+                  type: string
+                  example: to 11:00 pm
+                cancellation_policy:
+                  type: string
+                  example: no cancellation
+                host_contact:
+                  type: string
+                  example: 4569873216
+                host_name:
+                  type: string
+                  example: string
+                tax:
+                  type: boolean
+                  example: true
+                tax_amount:
+                  type: number
+                  example: 10
+                isverified:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Property updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                
+        '400':
+          description: Invalid ID or bad request
+        '404':
+          description: Property not found
+        '500':
+          description: Internal server error
+  
+  /indhostels/auth/vendor/deleteproperty/{id}:
+     delete:
+      summary: Delete a property
+      description: Removes a property by its ID.
+      tags:
+        - Vendor-Properties
+      security:
+        - BearerAuth: []
+      operationId: deletePost
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the property to delete.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Property deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Property deleted successfully"
+        "401":
+          description: ID not received.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Id not received"
+        "404":
+          description: Property not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Property not found"
+        "500":
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+
+ # Property Rooms 
+  /indhostels/auth/vendor/propertyrooms/{id}:
+     post:
+      summary: Create a room for property
+      description: Create different types of rooms for a specific property using property ID
+      tags: 
+        - property rooms 
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The property ID
+          schema:
+            type: string 
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - room_type
+                - beds_available
+                - no_of_guests
+                - no_of_childrens
+                - room_amenities
+                - room_description
+                - rooms_available
+                - pricings
+              properties:
+                room_type:
+                  type: string
+                  description: The type of room (single)
+                  example: "Deluxe Room"
+                beds_available:
+                  type: number
+                  description: The number of beds available in the room
+                  example: 2
+                no_of_guests:
+                  type: number
+                  description: The maximum number of guests the room can accommodate
+                  example: 2
+                no_of_childrens:
+                  type: number
+                  description: The maximum number of children the room can accommodate
+                  example: 2
+                room_amenities:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of room amenities
+                room_description:
+                  type: string
+                  description: Detailed description of the room
+                  example: "Spacious room with a beautiful view and modern amenities"
+                rooms_available:
+                  type: number
+                  description: The number of rooms of this type available
+                  example: 5
+                images:
+                  type: array 
+                  items:
+                    type: file
+                  description: Array of product images 
+                pricings:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      price:
+                        type: number
+                        description: The price of the room
+                        example: 100
+                      price_type:
+                        type: string
+                        description: The type of price (e.g. per day, per week)
+                        example: "per day"
+      responses:
+        '200':
+          description: Room created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Room created successfully
+                  data:
+                    type: object
+                    description: Created room object
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+  /indhostels/auth/vendor/room/{id}:
+    put:
+     summary: Update a room 
+     description: Update different types of rooms for a specific property using Room ID
+     tags: 
+        - property rooms 
+     security:
+        - BearerAuth: [] 
+     parameters:
+        - name: id
+          in: path
+          required: true
+          description: The room ID
+          schema:
+            type: string
+     requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                room_type:
+                  type: string
+                  description: The type of room (single)
+                  example: "Deluxe Room"
+                beds_available:
+                  type: number
+                  description: The number of beds available in the room
+                  example: 2
+                no_of_guests:
+                  type: number
+                  description: The maximum number of guests the room can accommodate
+                  example: 2
+                no_of_childrens:
+                  type: number
+                  description: The maximum number of children the room can accommodate
+                  example: 2
+                room_amenities:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of room amenities
+                room_description:
+                  type: string
+                  description: Detailed description of the room
+                  example: "Spacious room with a beautiful view and modern amenities"
+                rooms_available:
+                  type: number
+                  description: The number of rooms of this type available
+                  example: 5
+                # images:
+                #   type: array 
+                #   items:
+                #     type: file
+                #   description: Array of product images 
+     responses:
+        '200':
+          description: Room updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Room updated successfully
+                  data:
+                    type: object
+                    description: Updated room object
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error 
+    delete:
+      summary: Delete a room
+      description: Delete a room using the room id
+      tags:
+        - property rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The room ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Room deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Room deleted successfully
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+  /indhostels/auth/vendor/room/singleimage/{id}:
+    patch:
+      summary: replace single image 
+      description: replace single image using room id
+      tags:
+        - property rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The room ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                index:
+                  type: number
+                  description: The index of the image to delete
+                  example: 0
+                image:
+                  type: file
+                  description: The image to upload
+                  example: image.jpg
+      responses:
+        '200':
+          description: Image replaced successfully
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Image replaced successfully
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+    delete:
+      summary: delete single iamge 
+      description: delete single iamge using room id
+      tags:
+        - property rooms
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The room ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                index:
+                  type: number
+                  description: The index of the image to delete
+                  example: 0
+      responses:
+        '200':
+          description: Image deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Image deleted successfully
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error
+  /indhostels/auth/vendor/room/images/{id}:
+    post:
+      summary: add images to room 
+      description : add images to room using room id 
+      tags:
+        - property rooms 
+      security: 
+        - BearerAuth: [] 
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The room ID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: file
+                  description: The images to upload
+      responses:
+        '200':
+          description: Images added successfully
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Images added successfully
+        '400':
+          description: Bad Request - Missing or invalid input
+        '500':
+          description: Internal Server Error 
+  
+# pricings 
+  
+  /indhostels/auth/vendor/matrix/{accommodationid}/{roomid}:
+    post:
+      tags:
+        -  pricings
+      security:
+        - BearerAuth: []
+      summary: Create a pricing matrix entry
+      description: Creates a pricing matrix entry for a specific accommodation and room.
+      parameters:
+        - in: path
+          name: accommodationid
+          required: true
+          schema:
+            type: string
+          description: Accommodation ID (MongoDB ObjectId)
+        - in: path
+          name: roomid
+          required: true
+          schema:
+            type: string
+          description: Room ID (MongoDB ObjectId)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - price
+                  - price_type
+                properties:
+                  price:
+                    type: number
+                    example: 999
+                  price_type:
+                    type: string
+                    example: "per night"
+      responses:
+        '200':
+          description: Product matrix created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: product matrix created successfully
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized or Validation Error
+        '404':
+          description: Product not found
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/vendor/matrix/{id}:
+    patch:
+      tags:
+        -  pricings
+      security:
+        - BearerAuth: []
+      summary: Update a pricing matrix entry
+      description: Updates pricing matrix entry for a specific room in a accommodation.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Matrix ID (MongoDB ObjectId)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                pricing:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - price
+                      - price_type
+                    properties:
+                      price:
+                        type: number
+                        example: 999
+                      price_type:
+                        type: string
+                        example: "per night"
+      responses:
+        '200':
+          description: Pricing matrix updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: pricing matrix updated successfully
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                  error:
+                    type: string
+        '401':
+          description: Unauthorized or Invalid ID
+        '404':
+          description: Product or Matrix not found
+        '500':
+          description: Internal Server Error 
+    get:
+      tags:
+        -  pricings
+      security:
+        - BearerAuth: []
+      summary: Get a pricing matrixes
+      description: Retrieves all pricing matrixes of a room using pricing matrix id.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Matrix ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Product matrix retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: product matrix retrieved successfully
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                  error:
+                    type: string
+        '401':
+          description: Unauthorized or Invalid ID
+        '404':
+          description: Product or Matrix not found
+        '500':
+          description: Internal Server Error
+  /indhostels/auth/vendor/matrix/deleteprice/{id}/{priceid}:
+    delete:
+      tags:
+        -  pricings
+      security:
+        - BearerAuth: []
+      summary: Delete a pricing matrix entry
+      description: Deletes a specific pricing matrix by its pricing matrix ID and delete the pricingid in the room document.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Pricing Matrix ID (MongoDB ObjectId)
+        - in: path
+          name: priceid
+          required: true
+          schema:
+            type: string
+          description: Pricing ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Pricing matrix deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: pricing matrix deleted successfully
+        '400':
+          description: Invalid ID or matrix not found
+        '404':
+          description: Pricing or Pricing matrix not found
+        '500':
+          description: Internal Server Error
+
+# bookings 
+  
+  /indhostels/auth/vendor/bookings:
+     get:
+      summary: View all Recent Orders
+      description: Retrieves all Recent Orders (conformed or out of delivery) and includes populated user and product details.
+      tags:
+        - Bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          description: Page number for pagination (default is 1)
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          required: false
+          description: Number of records per page (default is 10)
+          schema:
+            type: integer
+            default: 10
+        - in: query
+          name: unpaid
+          required: false
+          schema:
+            type: boolean
+            default: false 
+        - in: query
+          name: paid
+          required: false
+          schema:
+            type: boolean
+            default: false 
+      responses:
+        '200':
+          description: Recent Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: recent orders retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                    example: 10
+                  totalPages:
+                    type: integer
+                    example: 1 
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                  error:
+                    type: string
+        '401':
+          description: Unauthorized or Invalid ID
+        '404':
+          description: Product or Matrix not found
+        '500':
+          description: Internal Server Error 
+  /indhostels/auth/vendor/cancelbookings:
+     get:
+      summary: View all Recent Orders
+      description: Retrieves all Recent Orders (conformed or out of delivery) and includes populated user and product details.
+      tags:
+        - Bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          required: false
+          description: Page number for pagination (default is 1)
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          required: false
+          description: Number of records per page (default is 10)
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Recent Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: recent orders retrieved successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                    example: 10
+                  totalPages:
+                    type: integer
+                    example: 1 
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                  error:
+                    type: string
+        '401':
+          description: Unauthorized or Invalid ID
+        '404':
+          description: Product or Matrix not found
+        '500':
+          description: Internal Server Error 
+  
+  /indhostels/auth/vendor/bookings/requested/confirm/{id}:
+    put:
+      summary: confirm the cancel order request
+      description: Confirms the cancel order request for a specific order.
+      tags:
+       - Bookings
+      security:
+       - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Order ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accept
+                - CancelOrder
+              properties:
+                accept:
+                  type: boolean
+                  example: true
+                CancelOrder:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+           description: Order cancel request confirmed successfully
+        '404':
+          description: Order not found
+        '402':
+          description: User doesnot requested for cancel
+        '500':
+          description: Internal Server Error 
+  
+  /indhostels/auth/vendor/bookings/{id}:
+    get:
+      summary: Get a specific booking by ID
+      description: Retrieves a specific booking by ID and includes populated user and product details.
+      tags:
+        - Bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Booking ID
+      responses:
+        '200':
+          description: Booking retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Booking not found
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/vendor/bookings/status/{id}/{orderstatus}/{paymentstatus}:
+    patch:
+      tags:
+        - Bookings
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            description: Order ID 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              properties:
+                orderstatus:
+                  type: string
+                  example: "checkin"
+                  description: The new status of the order
+                paymentstatus:
+                  type: string
+                  example: "paid"
+                  description: The new status of the payment
+      responses:
+        '200':
+          description: Order status updated successfully
+        '404':
+          description: Order not found
+        '500':
+          description: Internal Server Error 
+
+  /indhostels/auth/vendor/vendordashbord:
+    get:
+      summary: Get Vendor Dashboard Data
+      description: Get Vendor Dashboard Data
+      tags:
+        - Vendor-Dashboard
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Vendor Dashboard Data retrived successfully 
+        '500':
+          description: Internal Server Error 
+  /indhostels/auth/vendor/salesanalysis:
+    get:
+      summary: Get Sales Analytics Data
+      description: Get Sales Analytics Data
+      tags:
+        - Vendor-Dashboard 
+      security:
+        - BearerAuth: []
+      parameters:
+      - in: query
+        name: type
+        required: true
+        schema:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        description: Type of analytics to fetch 
+      - in: query 
+        name: accommodationId
+        required: false
+        schema:
+          type: string
+        description: ID of the accommodation to fetch analytics for
+      responses:
+        '200':
+          description: Sales analytics retrived successfully 
+        '500':
+          description: Internal Server Error
+
+# coupons
+  /indhostels/auth/vendor/add-coupon:
+    post:
+      summary: Create a new coupon
+      description: creates a new coupon which used by users to get discount on their orders
+      tags:
+        - Vendor-coupon
+      security:
+        - BearerAuth: [] 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - couponCode
+              properties:
+                couponCode:
+                  type: string
+                  example: COUPON123 
+                discounttype:
+                  type: string
+                  example: percentage or amount 
+                discountpercentage:
+                  type: number
+                  example: 10
+                discountamount:
+                  type: number
+                  example: 10
+                expireDate:
+                  type: date
+                  example: 2025-07-21 
+                minimumamount:
+                  type: number
+                  example: 0 
+                status:
+                  type: string
+                  example: active
+                targetedAccommodations:
+                  type: array
+                  items:
+                    type: string
+                  example: ["652b3b3b3b3b3b3b3b3b3b3b"]
+      responses:
+        '200':
+          description: coupon created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Coupon created successfully
+        '400':
+           description: Invalid coupon code 
+        '400':
+           description: Already exists 
+        '500':
+           description: Internal Server Error 
+
+  /indhostels/auth/vendor/all-coupons:
+    get:
+      summary: Get all coupons
+      description: Returns a list of all coupons
+      tags:
+        - Vendor-coupon
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            example: 1
+          required: true
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+          required: true
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All coupons retrived successfully 
+        '404':
+          description: No coupons found 
+        '500':
+          description: Internal Server Error 
+    
+  /indhostels/auth/vendor/update-coupon/{id}:
+    patch:
+      summary: Update a coupon
+      description: updates the  heading and description of the perticular blog
+      tags:
+        - Vendor-coupon
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Blog ID (MongoDB ObjectId)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                couponCode:
+                  type: string
+                  example: Updated Blog Title
+                discounttype:
+                  type: string
+                  example: percentage or amount 
+                discountpercentage:
+                  type: number
+                  example: 10
+                discountamount:
+                  type: number
+                  example: 10
+                expireDate:
+                  type: date
+                  example: 2025-07-21 
+                minimumamount:
+                  type: number
+                  example: 0 
+                status:
+                  type: string
+                  example: active
+                targetedAccommodations:
+                  type: array
+                  items:
+                    type: string
+                  example: ["652b3b3b3b3b3b3b3b3b3b3b"]
+      responses:
+        '200':
+          description: Coupon updated successfully
+        '400':
+          description: Invalid coupon data
+        '404':
+          description: Coupon not found
+        '500':
+          description: Internal Server Error
+  
+  /indhostels/auth/vendor/delete-coupon/{couponid}:
+     delete:
+       summary: Delete a coupon
+       description: Deletes a coupon by its ID
+       tags:
+         - Vendor-coupon
+       security:
+         - BearerAuth: []
+       parameters:
+         - in: path
+           name: couponid
+           required: true
+           schema:
+             type: string
+           description: Coupon ID (MongoDB ObjectId)
+       responses:
+         '200':
+           description: Coupon deleted successfully
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   success:
+                     type: boolean
+                     example: true
+                   message:
+                     type: string
+                     example: Coupon deleted successfully
+         '400':
+           description: Invalid ID or coupon not found
+         '404':
+           description: Coupon not found
+         '500':
+           description: Internal Server Error
+  
+  /indhostels/auth/vendor/get-all-tickets:
+    get:
+      summary: Get all tickets
+      description: Returns a list of all tickets
+      tags:
+        - Vendor-tickets
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: All tickets retrived successfully 
+        '404':
+          description: No tickets found 
+        '500':
+          description: Internal Server Error  
+
+  /indhostels/auth/vendor/get-messages-of-ticket/{ticketId}:
+    get:
+      summary: Get messages of a ticket
+      description: Returns a list of messages of a ticket
+      tags:
+        - Vendor-tickets
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: ticketId
+          required: true
+          schema:
+            type: string
+          description: Ticket ID (MongoDB ObjectId)
+      responses:
+        '200':
+          description: Messages fetched successfully 
+        '404':
+          description: No messages found 
+        '500':
+          description: Internal Server Error  
+
+  /indhostels/auth/vendor/reply-message/{ticketId}:
+    post:
+      summary: Reply to a ticket
+      description: Replies to a ticket
+      tags:
+        - Vendor-tickets
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: ticketId
+          required: true
+          schema:
+            type: string
+          description: Ticket ID (MongoDB ObjectId)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Hello, how are you?"
+                status:
+                  type: string
+                  example: "Open"
+      responses:
+        '200':
+          description: Message sent successfully 
+        '404':
+          description: No messages found 
+        '500':
+          description: Internal Server Error  
+
+# get all stays 
+ 
+  /indhostels/auth/vendor/allstays:
+    get:
+      summary: Get all stay types
+      description: Get all stay types
+      tags:
+        - Stay Type
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Stay types retrieved successfully
+        '400':
+          description: Invalid stay type data
+        '500':
+          description: Internal Server Error 
+  
+  /indhostels/auth/vendor/amenities/accommodation:
+    get:
+      summary: Get all amenities by accommodation type
+      description: Get all amenities by accommodation type
+      tags:
+        - Amenities
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: query
+          name: accommodation_type
+          required: true
+          schema:
+            type: string
+          description: Accommodation Type 
+      responses:
+        '200':
+          description: Amenities retrieved successfully
+        '400':
+          description: Invalid amenities data
+        '500':
+          description: Internal Server Error 
+  
+  /indhostels/auth/vendor/amenities/room:
+    get:
+      summary: Get all room amenities by accommodation type
+      description: Get all room amenities by accommodation type
+      tags:
+        - Amenities
+      security:
+        - BearerAuth: [] 
+      parameters:
+        - in: query
+          name: accommodation_type
+          required: true
+          schema:
+            type: string
+          description: Accommodation Type 
+      responses:
+        '200':
+          description: Amenities retrieved successfully
+        '400':
+          description: Invalid amenities data
+        '500':
+          description: Internal Server Error 
+
+  /indhostels/auth/vendor/category:
+    get:
+      summary: Get all categories
+      description: Returns a list of all categories in the database.
+      tags:
+        - Category
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: staytype
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "hostels"
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: categories retrieved successfully
+                  allCategories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          example: "60c72b2f9b1e8e001cfddf40"
+                        categery_name:
+                          type: string
+                          example: "Electronics"
+        '404':
+          description: No categories found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: categories are empty
+                  error:
+                    type: string
+                    example: Not Found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Internal Server Error
+                  error:
+                    type: string
+                    example: Unexpected error occurred
+  
